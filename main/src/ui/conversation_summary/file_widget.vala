@@ -210,6 +210,16 @@ public class FileWidget : Box {
             return "%02d:%02d".printf(i_minutes, i_seconds);
     }
 
+    private void set_pause(Element playbin, bool paused) {
+        playbin.set_state(paused ? Gst.State.PAUSED : Gst.State.PLAYING);
+    }
+
+    private bool get_pause(Element playbin) {
+        Gst.State state;
+        playbin.get_state(out state, null, 20);
+        return state == Gst.State.PAUSED;
+    }
+
     private void add_audio_widget(FileTransfer file_transfer) {
         this.state = State.AUDIO;
 
@@ -232,7 +242,6 @@ public class FileWidget : Box {
         seek_scale.set_range(0.0, 1.0);
         seek_scale.format_value.connect(format_timestamp);
 
-        bool paused = true;
         bool should_reset = true;
 
         seek_scale.change_value.connect((_, seek_ns) => {
@@ -242,8 +251,7 @@ public class FileWidget : Box {
         });
 
         open_button.clicked.connect(() => {
-            paused = !paused;
-            playbin.set_state(paused ? Gst.State.PAUSED : Gst.State.PLAYING);
+            set_pause(playbin, !get_pause(playbin));
             int64 seek = should_reset ? 0 : (int64) seek_scale.get_value();
             playbin.seek_simple(Gst.Format.TIME, Gst.SeekFlags.FLUSH, seek);
             should_reset = false;
@@ -253,9 +261,8 @@ public class FileWidget : Box {
 
         bus.message.connect((_, message) => {
             if (message.type == Gst.MessageType.EOS) {
-                playbin.set_state(Gst.State.PAUSED);
+                set_pause(playbin, true);
                 should_reset = true;
-                paused = true;
             } else if (message.type == Gst.MessageType.STATE_CHANGED) {
                 int64 duration;
                 playbin.query_duration(Gst.Format.TIME, out duration);
@@ -265,9 +272,9 @@ public class FileWidget : Box {
 
                 /* We'll want to update info for as long as we can */
 
-                if (duration > 0 && !paused && !has_timeout) {
+                if (duration > 0 && !get_pause(playbin) && !has_timeout) {
                     Timeout.add(40, () => {
-                        if (paused) {
+                        if (get_pause(playbin)) {
                             has_timeout = false;
                             return false;
                         }
