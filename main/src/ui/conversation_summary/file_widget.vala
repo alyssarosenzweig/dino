@@ -214,6 +214,7 @@ public class FileWidget : Box {
         this.state = State.AUDIO;
 
         Element playbin = element_for_file_transfer(file_transfer);
+        playbin.set_state (Gst.State.PAUSED);
 
         Query query = new Query.position(Gst.Format.TIME);
 
@@ -233,6 +234,7 @@ public class FileWidget : Box {
 
         bool eos = false;
         bool was_eos = true;
+        bool paused = true;
 
         seek_scale.change_value.connect((_, seek_ns) => {
             playbin.seek_simple(Gst.Format.TIME, Gst.SeekFlags.FLUSH, (int64) seek_ns);
@@ -241,7 +243,8 @@ public class FileWidget : Box {
         });
 
         open_button.clicked.connect(() => {
-            playbin.set_state (Gst.State.PLAYING);
+            paused = !paused;
+            playbin.set_state(paused ? Gst.State.PAUSED : Gst.State.PLAYING);
 
             /* Play from start if we finished up */
             int64 seek = 0;
