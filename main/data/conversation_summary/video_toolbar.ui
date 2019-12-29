@@ -12,12 +12,12 @@
                     <object class="GtkBox">
                         <property name="visible">True</property>
                         <child>
-                            <object class="GtkButton" id="open_button">
+                            <object class="GtkButton" id="pause_button">
                                 <property name="relief">none</property>
                                 <property name="visible">True</property>
                                 <child>
-                                    <object class="GtkImage" id="open_image">
-                                        <property name="icon-name">view-fullscreen-symbolic</property>
+                                    <object class="GtkImage" id="pause_image">
+                                        <property name="icon-name">media-playback-start-symbolic</property>
                                         <property name="icon-size">1</property>
                                         <property name="visible">True</property>
                                     </object>

@@ -182,7 +182,7 @@ public class FileWidget : Box {
         Builder builder = new Builder.from_resource("/im/dino/Dino/conversation_summary/video_toolbar.ui");
         Widget toolbar = builder.get_object("main") as Widget;
 
-        Button open_button = builder.get_object("open_button") as Button;
+        Button open_button = builder.get_object("pause_button") as Button;
 
         open_button.clicked.connect(() => {
             playbin.set_state (Gst.State.PLAYING);
@@ -210,8 +210,11 @@ public class FileWidget : Box {
             return "%02d:%02d".printf(i_minutes, i_seconds);
     }
 
-    private void set_pause(Element playbin, bool paused) {
+    private void set_pause(Element playbin, Image image, bool paused) {
         playbin.set_state(paused ? Gst.State.PAUSED : Gst.State.PLAYING);
+
+        /* Set the symbol for the action to change */
+        image["icon-name"] = paused ? "media-playback-start-symbolic" : "media-playback-pause-symbolic";
     }
 
     private bool get_pause(Element playbin) {
@@ -234,8 +237,9 @@ public class FileWidget : Box {
         Builder builder = new Builder.from_resource("/im/dino/Dino/conversation_summary/video_toolbar.ui");
         Widget toolbar = builder.get_object("main") as Widget;
 
-        Button open_button = builder.get_object("open_button") as Button;
+        Button pause_button = builder.get_object("pause_button") as Button;
         Gtk.Scale seek_scale = builder.get_object("seek_scale") as Gtk.Scale;
+        Image pause_image = builder.get_object("pause_image") as Image;
 
         /* Initialize with dummy values */
 
@@ -250,8 +254,8 @@ public class FileWidget : Box {
             return false;
         });
 
-        open_button.clicked.connect(() => {
-            set_pause(playbin, !get_pause(playbin));
+        pause_button.clicked.connect(() => {
+            set_pause(playbin, pause_image, !get_pause(playbin));
             int64 seek = should_reset ? 0 : (int64) seek_scale.get_value();
             playbin.seek_simple(Gst.Format.TIME, Gst.SeekFlags.FLUSH, seek);
             should_reset = false;
@@ -261,7 +265,7 @@ public class FileWidget : Box {
 
         bus.message.connect((_, message) => {
             if (message.type == Gst.MessageType.EOS) {
-                set_pause(playbin, true);
+                set_pause(playbin, pause_image, true);
                 should_reset = true;
             } else if (message.type == Gst.MessageType.STATE_CHANGED) {
                 int64 duration;
