@@ -211,6 +211,23 @@ public class FileWidget : Box {
         /* Initialize with dummy values */
         seek_scale.set_range(0.0, 1.0);
 
+        /* We want to use timestamps for seeking. Values are in nanoseconds */
+        seek_scale.format_value.connect((value) => {
+            double seconds = value / 1000000000.0f;
+            double minutes = seconds / 60.0f;
+            double hours = minutes / 60.0f;
+
+            /* Round down; note all values are positive so we can truncate */
+            int i_seconds = (int) seconds;
+            int i_minutes = (int) minutes;
+            int i_hours = (int) hours;
+
+            if (i_hours > 0)
+                return "%02d:%02d:%02d".printf(i_hours, i_minutes, i_seconds);
+            else
+                return "%02d:%02d".printf(i_minutes, i_seconds);
+        });
+
         open_button.clicked.connect(() => {
             playbin.set_state (Gst.State.PLAYING);
 
