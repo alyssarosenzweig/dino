@@ -169,7 +169,8 @@ public class FileWidget : Box {
 
         /* We want to have controls for the video on hover */
 
-        Label toolbar = new Label("Foo!") { visible = true };
+        Builder builder = new Builder.from_resource("/im/dino/Dino/conversation_summary/image_toolbar.ui");
+        Widget toolbar = builder.get_object("main") as Widget;
 
         EventBox grid = create_grid_revealer(video_area, toolbar);
         this.add(grid);
