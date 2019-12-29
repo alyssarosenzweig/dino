@@ -164,9 +164,24 @@ public class FileWidget : Box {
         gtksink.get ("widget", out video_area);
 
         playbin["video-sink"] = gtksink;
-        our_box.add(video_area);
 
-        this.add(our_box);
+        /* We want to have controls for the video on hover */
+
+        Label toolbar = new Label("Foo!") { visible = true };
+        Revealer toolbar_revealer = new Revealer() { transition_type=RevealerTransitionType.CROSSFADE, transition_duration=400, visible=true };
+        toolbar_revealer.add(toolbar);
+
+        Grid grid = new Grid() { visible=true };
+        grid.attach(toolbar_revealer, 0, 0, 1, 1);
+        grid.attach(video_area, 0, 0, 1, 1);
+
+        EventBox event_box = new EventBox() { margin_top=5, halign=Align.START, visible=true };
+        event_box.events = EventMask.POINTER_MOTION_MASK;
+        event_box.add(grid);
+        event_box.enter_notify_event.connect(() => { toolbar_revealer.reveal_child = true; return false; });
+        event_box.leave_notify_event.connect(() => { toolbar_revealer.reveal_child = false; return false; });
+
+        this.add(event_box);
     }
 
     private Widget get_default_widget(FileTransfer file_transfer) {
