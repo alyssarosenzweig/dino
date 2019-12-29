@@ -195,7 +195,6 @@ public class FileWidget : Box {
     private void add_audio_widget(FileTransfer file_transfer) {
         this.state = State.AUDIO;
 
-        stdout.printf("Create..\n");
         Element playbin = element_for_file_transfer(file_transfer);
 
         Query query = new Query.position(Gst.Format.TIME);
@@ -203,7 +202,6 @@ public class FileWidget : Box {
         Gst.Bus bus = playbin.get_bus();
         bus.add_signal_watch();
         bus.message.connect((_, message) => {
-            //stdout.printf("Message\n");
             if (message.type == Gst.MessageType.EOS) {
                 playbin.set_state(Gst.State.READY);
             } else if (message.type == Gst.MessageType.STREAM_START) {
