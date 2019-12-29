@@ -228,6 +228,11 @@ public class FileWidget : Box {
                 return "%02d:%02d".printf(i_minutes, i_seconds);
         });
 
+        seek_scale.change_value.connect((_, seek_ns) => {
+            playbin.seek_simple(Gst.Format.TIME, Gst.SeekFlags.FLUSH, (int64) seek_ns);
+            return false;
+        });
+
         open_button.clicked.connect(() => {
             playbin.set_state (Gst.State.PLAYING);
 
