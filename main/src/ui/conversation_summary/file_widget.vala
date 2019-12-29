@@ -255,9 +255,9 @@ public class FileWidget : Box {
         });
 
         pause_button.clicked.connect(() => {
-            set_pause(playbin, pause_image, !get_pause(playbin));
             int64 seek = should_reset ? 0 : (int64) seek_scale.get_value();
             playbin.seek_simple(Gst.Format.TIME, Gst.SeekFlags.FLUSH, seek);
+            set_pause(playbin, pause_image, !get_pause(playbin));
             should_reset = false;
         });
 
