@@ -12,6 +12,7 @@ public class FileWidget : Box {
 
     enum State {
         IMAGE,
+        AUDIO,
         VIDEO,
         DEFAULT
     }
@@ -50,6 +51,9 @@ public class FileWidget : Box {
                 this.add(content);
                 return;
             }
+        } else if (show_audio()) {
+            add_audio_widget(file_transfer);
+            return;
         } else if (show_video()) {
             add_video_widget(file_transfer);
             return;
@@ -181,6 +185,31 @@ public class FileWidget : Box {
 
         EventBox grid = create_grid_revealer(video_area, toolbar);
         this.add(grid);
+    }
+
+    private void add_audio_widget(FileTransfer file_transfer) {
+        this.state = State.AUDIO;
+
+        Pipeline pipeline = new Pipeline("dino-audio");
+
+        Element playbin = ElementFactory.make ("playbin", "bin");
+        playbin["uri"] = "file://" + file_transfer.get_file().get_path();
+
+        Element autosink = ElementFactory.make ("autoaudiosink", "sink");
+        pipeline.add_many(playbin, autosink);
+        playbin.link(autosink);
+
+        Builder builder = new Builder.from_resource("/im/dino/Dino/conversation_summary/video_toolbar.ui");
+        Widget toolbar = builder.get_object("main") as Widget;
+
+        Button open_button = builder.get_object("open_button") as Button;
+
+        open_button.clicked.connect(() => {
+            playbin.set_state (Gst.State.PLAYING);
+        });
+
+        toolbar.visible = true;
+        this.add(toolbar);
     }
 
     private Widget get_default_widget(FileTransfer file_transfer) {
@@ -377,6 +406,18 @@ public class FileWidget : Box {
 
         return false;
     }
+
+    private bool show_audio() {
+        if (file_transfer.mime_type == null || file_transfer.state != FileTransfer.State.COMPLETE) return false;
+
+        /* TODO: more formats */
+        if (file_transfer.mime_type == "audio/mp4") return true;
+        stdout.printf(file_transfer.mime_type);
+
+        return false;
+    }
+
+
 }
 
 }
