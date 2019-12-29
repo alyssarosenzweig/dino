@@ -192,6 +192,24 @@ public class FileWidget : Box {
         this.add(grid);
     }
 
+    /* We want to use timestamps for seeking. Values are in nanoseconds */
+
+    private string format_timestamp(double ns) {
+        double seconds = ns / 1000000000.0f;
+        double minutes = seconds / 60.0f;
+        double hours = minutes / 60.0f;
+
+        /* Round down; note all values are positive so we can truncate */
+        int i_seconds = (int) seconds;
+        int i_minutes = (int) minutes;
+        int i_hours = (int) hours;
+
+        if (i_hours > 0)
+            return "%02d:%02d:%02d".printf(i_hours, i_minutes, i_seconds);
+        else
+            return "%02d:%02d".printf(i_minutes, i_seconds);
+    }
+
     private void add_audio_widget(FileTransfer file_transfer) {
         this.state = State.AUDIO;
 
@@ -209,24 +227,9 @@ public class FileWidget : Box {
         Gtk.Scale seek_scale = builder.get_object("seek_scale") as Gtk.Scale;
 
         /* Initialize with dummy values */
+
         seek_scale.set_range(0.0, 1.0);
-
-        /* We want to use timestamps for seeking. Values are in nanoseconds */
-        seek_scale.format_value.connect((value) => {
-            double seconds = value / 1000000000.0f;
-            double minutes = seconds / 60.0f;
-            double hours = minutes / 60.0f;
-
-            /* Round down; note all values are positive so we can truncate */
-            int i_seconds = (int) seconds;
-            int i_minutes = (int) minutes;
-            int i_hours = (int) hours;
-
-            if (i_hours > 0)
-                return "%02d:%02d:%02d".printf(i_hours, i_minutes, i_seconds);
-            else
-                return "%02d:%02d".printf(i_minutes, i_seconds);
-        });
+        seek_scale.format_value.connect(format_timestamp);
 
         seek_scale.change_value.connect((_, seek_ns) => {
             playbin.seek_simple(Gst.Format.TIME, Gst.SeekFlags.FLUSH, (int64) seek_ns);
@@ -241,9 +244,12 @@ public class FileWidget : Box {
 
         });
 
+        bool eos = false;
+
         bus.message.connect((_, message) => {
             if (message.type == Gst.MessageType.EOS) {
                 playbin.set_state(Gst.State.READY);
+                eos = true;
             } else if (message.type == Gst.MessageType.STREAM_START) {
                 int64 duration;
                 playbin.query_duration(Gst.Format.TIME, out duration);
@@ -251,9 +257,11 @@ public class FileWidget : Box {
 
                 /* We'll want to update info for as long as we can */
 
-                Timeout.add(20, () => {
+                Timeout.add(40, () => {
                     if (!playbin.query(query)) {
-                        return false;
+                        bool was_eos = eos;
+                        eos = false;
+                        return !was_eos;
                     }
 
                     Format fmt;
