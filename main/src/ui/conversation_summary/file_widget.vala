@@ -11,6 +11,7 @@ public class FileWidget : Box {
 
     enum State {
         IMAGE,
+        VIDEO,
         DEFAULT
     }
 
@@ -48,7 +49,15 @@ public class FileWidget : Box {
                 this.add(content);
                 return;
             }
+        } else if (show_video()) {
+            content = get_video_widget(file_transfer);
+            if (content != null) {
+                this.state = State.VIDEO;
+                this.add(content);
+                return;
+            }
         }
+
         content = get_default_widget(file_transfer);
         this.state = State.DEFAULT;
         this.add(content);
@@ -143,6 +152,14 @@ public class FileWidget : Box {
         ctx.clip();
         ctx.paint();
         return Gdk.pixbuf_get_from_surface(ctx.get_target(), 0, 0, pixbuf.width, pixbuf.height);
+    }
+
+    private Widget? get_video_widget(FileTransfer file_transfer) {
+        Box our_box = new Box(Orientation.HORIZONTAL, 10) { halign=Align.FILL, hexpand=true, visible=true };
+        Label label = new Label("Video!") { visible =true };
+        our_box.add(label);
+
+        return our_box;
     }
 
     private Widget get_default_widget(FileTransfer file_transfer) {
@@ -328,6 +345,15 @@ public class FileWidget : Box {
                 }
             }
         }
+        return false;
+    }
+
+    private bool show_video() {
+        if (file_transfer.mime_type == null || file_transfer.state != FileTransfer.State.COMPLETE) return false;
+
+        /* TODO: more formats */
+        if (file_transfer.mime_type == "video/mp4") return true;
+
         return false;
     }
 }
