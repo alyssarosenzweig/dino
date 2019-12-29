@@ -232,27 +232,21 @@ public class FileWidget : Box {
         seek_scale.set_range(0.0, 1.0);
         seek_scale.format_value.connect(format_timestamp);
 
-        bool eos = false;
-        bool was_eos = true;
         bool paused = true;
+        bool should_reset = true;
 
         seek_scale.change_value.connect((_, seek_ns) => {
             playbin.seek_simple(Gst.Format.TIME, Gst.SeekFlags.FLUSH, (int64) seek_ns);
-            was_eos = false;
+            should_reset = false;
             return false;
         });
 
         open_button.clicked.connect(() => {
             paused = !paused;
             playbin.set_state(paused ? Gst.State.PAUSED : Gst.State.PLAYING);
-
-            /* Play from start if we finished up */
-            int64 seek = 0;
-
-            if (!was_eos)
-                seek = (int64) seek_scale.get_value();
-
+            int64 seek = should_reset ? 0 : (int64) seek_scale.get_value();
             playbin.seek_simple(Gst.Format.TIME, Gst.SeekFlags.FLUSH, seek);
+            should_reset = false;
         });
 
         bool has_timeout = false;
@@ -260,7 +254,8 @@ public class FileWidget : Box {
         bus.message.connect((_, message) => {
             if (message.type == Gst.MessageType.EOS) {
                 playbin.set_state(Gst.State.PAUSED);
-                eos = true;
+                should_reset = true;
+                paused = true;
             } else if (message.type == Gst.MessageType.STATE_CHANGED) {
                 int64 duration;
                 playbin.query_duration(Gst.Format.TIME, out duration);
@@ -270,20 +265,21 @@ public class FileWidget : Box {
 
                 /* We'll want to update info for as long as we can */
 
-                if (duration > 0 && !has_timeout) {
+                if (duration > 0 && !paused && !has_timeout) {
                     Timeout.add(40, () => {
-                        if (!playbin.query(query)) {
-                            was_eos = eos;
-                            eos = false;
+                        if (paused) {
                             has_timeout = false;
-                            return !was_eos;
+                            return false;
                         }
 
-                        Format fmt;
-                        int64 cur_position;
+                        if (playbin.query(query)) {
+                            Format fmt;
+                            int64 cur_position;
 
-                        query.parse_position(out fmt, out cur_position);
-                        seek_scale.set_value(cur_position);
+                            query.parse_position(out fmt, out cur_position);
+                            seek_scale.set_value(cur_position);
+                        }
+
                         return true;
                     });
 
