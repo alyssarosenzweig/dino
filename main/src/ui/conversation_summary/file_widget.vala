@@ -160,7 +160,7 @@ public class FileWidget : Box {
         Widget video_area;
 
         Element playbin = ElementFactory.make ("playbin", "bin");
-        playbin["uri"] = "file:///home/alyssa/Draft.webm";
+        playbin["uri"] = "file://" + file_transfer.get_file().get_path();
 
         Element gtksink = ElementFactory.make ("gtksink", "sink");
         gtksink.get ("widget", out video_area);
