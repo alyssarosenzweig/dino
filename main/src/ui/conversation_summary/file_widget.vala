@@ -207,8 +207,19 @@ public class FileWidget : Box {
             if (message.type == Gst.MessageType.EOS) {
                 playbin.set_state(Gst.State.READY);
             } else if (message.type == Gst.MessageType.STREAM_START) {
+                /* We'll want to update info for as long as we can */
 
-                stdout.printf("It's start\n");
+                Timeout.add(20, () => {
+                    if (!playbin.query(query))
+                        return false;
+
+                    Format fmt;
+                    int64 cur_position;
+
+                    query.parse_position(out fmt, out cur_position);
+                    stdout.printf(cur_position.to_string() + "\n");
+                    return true;
+                });
             }
         });
 
@@ -223,20 +234,6 @@ public class FileWidget : Box {
             /* Play from start */
             playbin.seek_simple(Gst.Format.TIME, Gst.SeekFlags.FLUSH, 0);
 
-            /* We'll want to update info */
-            Timeout.add(20, () => {
-                if (playbin.query(query)) {
-                    Format fmt;
-                    int64 cur_position;
-
-                    query.parse_position(out fmt, out cur_position);
-                    stdout.printf(cur_position.to_string() + "\n");
-                } else {
-                    stdout.printf("query failed\n");
-                }
-
-                return true;
-            });
         });
 
         this.add(toolbar);
