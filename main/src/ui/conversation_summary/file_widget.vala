@@ -60,6 +60,23 @@ public class FileWidget : Box {
         this.add(content);
     }
 
+    private EventBox create_grid_revealer(Widget main, Widget toolbar) {
+        Revealer toolbar_revealer = new Revealer() { transition_type=RevealerTransitionType.CROSSFADE, transition_duration=400, visible=true };
+        toolbar_revealer.add(toolbar);
+
+        Grid grid = new Grid() { visible=true };
+        grid.attach(toolbar_revealer, 0, 0, 1, 1);
+        grid.attach(main, 0, 0, 1, 1);
+
+        EventBox event_box = new EventBox() { margin_top=5, halign=Align.START, visible=true };
+        event_box.events = EventMask.POINTER_MOTION_MASK;
+        event_box.add(grid);
+        event_box.enter_notify_event.connect(() => { toolbar_revealer.reveal_child = true; return false; });
+        event_box.leave_notify_event.connect(() => { toolbar_revealer.reveal_child = false; return false; });
+
+        return event_box;
+    }
+
     private async Widget? get_image_widget(FileTransfer file_transfer) {
         Image image = new Image() { halign=Align.START, visible = true };
 
@@ -120,20 +137,7 @@ public class FileWidget : Box {
             }
         });
 
-        Revealer toolbar_revealer = new Revealer() { transition_type=RevealerTransitionType.CROSSFADE, transition_duration=400, visible=true };
-        toolbar_revealer.add(toolbar);
-
-        Grid grid = new Grid() { visible=true };
-        grid.attach(toolbar_revealer, 0, 0, 1, 1);
-        grid.attach(image, 0, 0, 1, 1);
-
-        EventBox event_box = new EventBox() { margin_top=5, halign=Align.START, visible=true };
-        event_box.events = EventMask.POINTER_MOTION_MASK;
-        event_box.add(grid);
-        event_box.enter_notify_event.connect(() => { toolbar_revealer.reveal_child = true; return false; });
-        event_box.leave_notify_event.connect(() => { toolbar_revealer.reveal_child = false; return false; });
-
-        return event_box;
+        return create_grid_revealer(image, toolbar);
     }
 
     private static Gdk.Pixbuf crop_corners(Gdk.Pixbuf pixbuf, double radius = 3) {
@@ -153,8 +157,6 @@ public class FileWidget : Box {
 
     private void add_video_widget(FileTransfer file_transfer) {
         this.state = State.VIDEO;
-        Box our_box = new Box(Orientation.HORIZONTAL, 10) { halign=Align.FILL, hexpand=true, visible=true };
-
         Widget video_area;
 
         Element playbin = ElementFactory.make ("playbin", "bin");
@@ -168,20 +170,9 @@ public class FileWidget : Box {
         /* We want to have controls for the video on hover */
 
         Label toolbar = new Label("Foo!") { visible = true };
-        Revealer toolbar_revealer = new Revealer() { transition_type=RevealerTransitionType.CROSSFADE, transition_duration=400, visible=true };
-        toolbar_revealer.add(toolbar);
 
-        Grid grid = new Grid() { visible=true };
-        grid.attach(toolbar_revealer, 0, 0, 1, 1);
-        grid.attach(video_area, 0, 0, 1, 1);
-
-        EventBox event_box = new EventBox() { margin_top=5, halign=Align.START, visible=true };
-        event_box.events = EventMask.POINTER_MOTION_MASK;
-        event_box.add(grid);
-        event_box.enter_notify_event.connect(() => { toolbar_revealer.reveal_child = true; return false; });
-        event_box.leave_notify_event.connect(() => { toolbar_revealer.reveal_child = false; return false; });
-
-        this.add(event_box);
+        EventBox grid = create_grid_revealer(video_area, toolbar);
+        this.add(grid);
     }
 
     private Widget get_default_widget(FileTransfer file_transfer) {
