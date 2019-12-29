@@ -159,17 +159,22 @@ public class FileWidget : Box {
         return Gdk.pixbuf_get_from_surface(ctx.get_target(), 0, 0, pixbuf.width, pixbuf.height);
     }
 
-    private void add_video_widget(FileTransfer file_transfer) {
-        this.state = State.VIDEO;
-        Widget video_area;
+    /* Construct a gstreamer element for a downloaded file */
 
+    private Element element_for_file_transfer(FileTransfer file_transfer) {
         Element playbin = ElementFactory.make ("playbin", "bin");
         playbin["uri"] = "file://" + file_transfer.get_file().get_path();
+        return playbin;
+    }
 
+    private void add_video_widget(FileTransfer file_transfer) {
+        this.state = State.VIDEO;
+
+        Widget video_area;
+        Element playbin = element_for_file_transfer(file_transfer);
         Element gtksink = ElementFactory.make ("gtksink", "sink");
         gtksink.get ("widget", out video_area);
         video_area.visible = true;
-
         playbin["video-sink"] = gtksink;
 
         /* We want to have controls for the video on hover */
@@ -191,10 +196,7 @@ public class FileWidget : Box {
         this.state = State.AUDIO;
 
         Pipeline pipeline = new Pipeline("dino-audio");
-
-        Element playbin = ElementFactory.make ("playbin", "bin");
-        playbin["uri"] = "file://" + file_transfer.get_file().get_path();
-
+        Element playbin = element_for_file_transfer(file_transfer);
         Element autosink = ElementFactory.make ("autoaudiosink", "sink");
         pipeline.add_many(playbin, autosink);
         playbin.link(autosink);
@@ -208,7 +210,6 @@ public class FileWidget : Box {
             playbin.set_state (Gst.State.PLAYING);
         });
 
-        toolbar.visible = true;
         this.add(toolbar);
     }
 
