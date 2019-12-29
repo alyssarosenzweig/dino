@@ -244,7 +244,6 @@ public class FileWidget : Box {
             playbin.set_state (Gst.State.PLAYING);
 
             /* Play from start if we finished up */
-            stdout.printf(was_eos.to_string() + "\n");
             int64 seek = 0;
 
             if (!was_eos)
