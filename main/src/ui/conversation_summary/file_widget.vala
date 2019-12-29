@@ -164,12 +164,13 @@ public class FileWidget : Box {
 
         Element gtksink = ElementFactory.make ("gtksink", "sink");
         gtksink.get ("widget", out video_area);
+        video_area.visible = true;
 
         playbin["video-sink"] = gtksink;
 
         /* We want to have controls for the video on hover */
 
-        Builder builder = new Builder.from_resource("/im/dino/Dino/conversation_summary/image_toolbar.ui");
+        Builder builder = new Builder.from_resource("/im/dino/Dino/conversation_summary/video_toolbar.ui");
         Widget toolbar = builder.get_object("main") as Widget;
 
         Button open_button = builder.get_object("open_button") as Button;
