@@ -215,6 +215,9 @@ public class FileWidget : Box {
 
         open_button.clicked.connect(() => {
             playbin.set_state (Gst.State.PLAYING);
+
+            /* Play from start */
+            playbin.seek_simple(Gst.Format.TIME, Gst.SeekFlags.FLUSH, 0);
         });
 
         this.add(toolbar);
