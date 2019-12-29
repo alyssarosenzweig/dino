@@ -195,11 +195,18 @@ public class FileWidget : Box {
     private void add_audio_widget(FileTransfer file_transfer) {
         this.state = State.AUDIO;
 
-        Pipeline pipeline = new Pipeline("dino-audio");
+        stdout.printf("Create..\n");
         Element playbin = element_for_file_transfer(file_transfer);
-        Element autosink = ElementFactory.make ("autoaudiosink", "sink");
-        pipeline.add_many(playbin, autosink);
-        playbin.link(autosink);
+
+        Gst.Bus bus = playbin.get_bus();
+        bus.add_signal_watch();
+        bus.message.connect((_, message) => {
+            //stdout.printf("Message\n");
+            if (message.type == Gst.MessageType.EOS) {
+                //playbin.set_state(Gst.State.READY);
+                stdout.printf("It's over\n");
+            }
+        });
 
         Builder builder = new Builder.from_resource("/im/dino/Dino/conversation_summary/video_toolbar.ui");
         Widget toolbar = builder.get_object("main") as Widget;
