@@ -201,6 +201,24 @@ public class FileWidget : Box {
 
         Gst.Bus bus = playbin.get_bus();
         bus.add_signal_watch();
+
+        Builder builder = new Builder.from_resource("/im/dino/Dino/conversation_summary/video_toolbar.ui");
+        Widget toolbar = builder.get_object("main") as Widget;
+
+        Button open_button = builder.get_object("open_button") as Button;
+        Gtk.Scale seek_scale = builder.get_object("seek_scale") as Gtk.Scale;
+
+        /* Initialize with dummy values */
+        seek_scale.set_range(0.0, 1.0);
+
+        open_button.clicked.connect(() => {
+            playbin.set_state (Gst.State.PLAYING);
+
+            /* Play from start */
+            playbin.seek_simple(Gst.Format.TIME, Gst.SeekFlags.FLUSH, 0);
+
+        });
+
         bus.message.connect((_, message) => {
             if (message.type == Gst.MessageType.EOS) {
                 playbin.set_state(Gst.State.READY);
@@ -227,18 +245,6 @@ public class FileWidget : Box {
             }
         });
 
-        Builder builder = new Builder.from_resource("/im/dino/Dino/conversation_summary/video_toolbar.ui");
-        Widget toolbar = builder.get_object("main") as Widget;
-
-        Button open_button = builder.get_object("open_button") as Button;
-
-        open_button.clicked.connect(() => {
-            playbin.set_state (Gst.State.PLAYING);
-
-            /* Play from start */
-            playbin.seek_simple(Gst.Format.TIME, Gst.SeekFlags.FLUSH, 0);
-
-        });
 
         this.add(toolbar);
     }
