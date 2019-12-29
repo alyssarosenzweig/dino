@@ -1,6 +1,7 @@
 using Gee;
 using Gdk;
 using Gtk;
+using Gst;
 using Pango;
 
 using Dino.Entities;
