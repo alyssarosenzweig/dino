@@ -198,13 +198,17 @@ public class FileWidget : Box {
         stdout.printf("Create..\n");
         Element playbin = element_for_file_transfer(file_transfer);
 
+        Query query = new Query.position(Gst.Format.TIME);
+
         Gst.Bus bus = playbin.get_bus();
         bus.add_signal_watch();
         bus.message.connect((_, message) => {
             //stdout.printf("Message\n");
             if (message.type == Gst.MessageType.EOS) {
-                //playbin.set_state(Gst.State.READY);
-                stdout.printf("It's over\n");
+                playbin.set_state(Gst.State.READY);
+            } else if (message.type == Gst.MessageType.STREAM_START) {
+
+                stdout.printf("It's start\n");
             }
         });
 
@@ -218,6 +222,21 @@ public class FileWidget : Box {
 
             /* Play from start */
             playbin.seek_simple(Gst.Format.TIME, Gst.SeekFlags.FLUSH, 0);
+
+            /* We'll want to update info */
+            Timeout.add(20, () => {
+                if (playbin.query(query)) {
+                    Format fmt;
+                    int64 cur_position;
+
+                    query.parse_position(out fmt, out cur_position);
+                    stdout.printf(cur_position.to_string() + "\n");
+                } else {
+                    stdout.printf("query failed\n");
+                }
+
+                return true;
+            });
         });
 
         this.add(toolbar);
