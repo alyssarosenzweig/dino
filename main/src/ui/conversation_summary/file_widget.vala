@@ -225,21 +225,20 @@ public class FileWidget : Box {
             } else if (message.type == Gst.MessageType.STREAM_START) {
                 int64 duration;
                 playbin.query_duration(Gst.Format.TIME, out duration);
-                float duration_rcp = (duration > 0) ? (1 / (float) duration) : 0.0f;
+                seek_scale.set_range(0.0, duration);
 
                 /* We'll want to update info for as long as we can */
 
                 Timeout.add(20, () => {
-                    if (!playbin.query(query))
+                    if (!playbin.query(query)) {
                         return false;
+                    }
 
                     Format fmt;
                     int64 cur_position;
 
                     query.parse_position(out fmt, out cur_position);
-
-                    float percent = (float) cur_position * duration_rcp * 100.0f;
-                    stdout.printf(percent.to_string() + "\n");
+                    seek_scale.set_value(cur_position);
                     return true;
                 });
             }
