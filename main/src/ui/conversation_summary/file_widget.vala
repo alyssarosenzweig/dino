@@ -172,6 +172,12 @@ public class FileWidget : Box {
         Builder builder = new Builder.from_resource("/im/dino/Dino/conversation_summary/image_toolbar.ui");
         Widget toolbar = builder.get_object("main") as Widget;
 
+        Button open_button = builder.get_object("open_button") as Button;
+
+        open_button.clicked.connect(() => {
+            playbin.set_state (Gst.State.PLAYING);
+        });
+
         EventBox grid = create_grid_revealer(video_area, toolbar);
         this.add(grid);
     }
