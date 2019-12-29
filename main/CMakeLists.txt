@@ -12,6 +12,10 @@ find_packages(MAIN_PACKAGES REQUIRED
     ICU
 )
 
+set(MAIN_PACKAGES ${MAIN_PACKAGES} gstreamer-1.0)
+find_package(PkgConfig REQUIRED)
+pkg_check_modules(GST REQUIRED IMPORTED_TARGET gstreamer-1.0)
+
 set(RESOURCE_LIST
     icons/dino-changes-prevent-symbolic.svg
     icons/dino-conversation-list-placeholder-arrow.svg
@@ -85,7 +89,7 @@ if(GDK3_WITH_X11)
     set(MAIN_EXTRA_OPTIONS ${MAIN_EXTRA_OPTIONS} -D GDK3_WITH_X11)
     set(MAIN_EXTRA_PACKAGES ${MAIN_EXTRA_PACKAGES} gdk-x11-3.0)
 endif(GDK3_WITH_X11)
-set(MAIN_EXTRA_OPTIONS ${MAIN_EXTRA_OPTIONS} --vapidir=${CMAKE_CURRENT_SOURCE_DIR}/vapi --pkg gstreamer-1.0)
+set(MAIN_EXTRA_OPTIONS ${MAIN_EXTRA_OPTIONS} --vapidir=${CMAKE_CURRENT_SOURCE_DIR}/vapi)
 
 vala_precompile(MAIN_VALA_C
 SOURCES
@@ -173,7 +177,7 @@ add_definitions(${VALA_CFLAGS} -DGETTEXT_PACKAGE=\"${GETTEXT_PACKAGE}\" -DLOCALE
 add_executable(dino ${MAIN_VALA_C} ${MAIN_GRESOURCES_TARGET} src/emojichooser.c)
 add_dependencies(dino ${GETTEXT_PACKAGE}-translations)
 target_include_directories(dino PRIVATE src)
-target_link_libraries(dino libdino ${MAIN_PACKAGES})
+target_link_libraries(dino libdino ${MAIN_PACKAGES} PkgConfig::GST)
 
 if(WIN32)
     target_link_libraries(dino -mwindows)

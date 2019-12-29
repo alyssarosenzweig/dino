@@ -160,6 +160,16 @@ public class FileWidget : Box {
         Label label = new Label("Video!") { visible =true };
         our_box.add(label);
 
+        Widget video_area;
+
+        Element playbin = ElementFactory.make ("playbin", "bin");
+        playbin["uri"] = "http://www.w3schools.com/html/mov_bbb.mp4";
+        Element gtksink = ElementFactory.make ("gtksink", "sink");
+        gtksink.get ("widget", out video_area);
+        playbin["video-sink"] = gtksink;
+
+        our_box.add(video_area);
+
         return our_box;
     }
 
