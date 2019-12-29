@@ -163,10 +163,11 @@ public class FileWidget : Box {
         Widget video_area;
 
         Element playbin = ElementFactory.make ("playbin", "bin");
-        playbin["uri"] = "http://www.w3schools.com/html/mov_bbb.mp4";
+        playbin["uri"] = "file:///home/alyssa/Draft.webm";
         Element gtksink = ElementFactory.make ("gtksink", "sink");
         gtksink.get ("widget", out video_area);
         playbin["video-sink"] = gtksink;
+        playbin.set_state(Gst.State.PLAYING);
 
         our_box.add(video_area);
 
