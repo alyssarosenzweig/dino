@@ -207,6 +207,10 @@ public class FileWidget : Box {
             if (message.type == Gst.MessageType.EOS) {
                 playbin.set_state(Gst.State.READY);
             } else if (message.type == Gst.MessageType.STREAM_START) {
+                int64 duration;
+                playbin.query_duration(Gst.Format.TIME, out duration);
+                float duration_rcp = (duration > 0) ? (1 / (float) duration) : 0.0f;
+
                 /* We'll want to update info for as long as we can */
 
                 Timeout.add(20, () => {
@@ -217,7 +221,9 @@ public class FileWidget : Box {
                     int64 cur_position;
 
                     query.parse_position(out fmt, out cur_position);
-                    stdout.printf(cur_position.to_string() + "\n");
+
+                    float percent = (float) cur_position * duration_rcp * 100.0f;
+                    stdout.printf(percent.to_string() + "\n");
                     return true;
                 });
             }
