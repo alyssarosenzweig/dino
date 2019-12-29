@@ -51,12 +51,8 @@ public class FileWidget : Box {
                 return;
             }
         } else if (show_video()) {
-            content = get_video_widget(file_transfer);
-            if (content != null) {
-                this.state = State.VIDEO;
-                this.add(content);
-                return;
-            }
+            add_video_widget(file_transfer);
+            return;
         }
 
         content = get_default_widget(file_transfer);
@@ -155,23 +151,22 @@ public class FileWidget : Box {
         return Gdk.pixbuf_get_from_surface(ctx.get_target(), 0, 0, pixbuf.width, pixbuf.height);
     }
 
-    private Widget? get_video_widget(FileTransfer file_transfer) {
+    private void add_video_widget(FileTransfer file_transfer) {
+        this.state = State.VIDEO;
         Box our_box = new Box(Orientation.HORIZONTAL, 10) { halign=Align.FILL, hexpand=true, visible=true };
-        Label label = new Label("Video!") { visible =true };
-        our_box.add(label);
 
         Widget video_area;
 
         Element playbin = ElementFactory.make ("playbin", "bin");
         playbin["uri"] = "file:///home/alyssa/Draft.webm";
+
         Element gtksink = ElementFactory.make ("gtksink", "sink");
         gtksink.get ("widget", out video_area);
-        playbin["video-sink"] = gtksink;
-        playbin.set_state(Gst.State.PLAYING);
 
+        playbin["video-sink"] = gtksink;
         our_box.add(video_area);
 
-        return our_box;
+        this.add(our_box);
     }
 
     private Widget get_default_widget(FileTransfer file_transfer) {
