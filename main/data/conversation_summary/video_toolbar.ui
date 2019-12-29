@@ -12,15 +12,6 @@
                     <object class="GtkBox">
                         <property name="visible">True</property>
                         <child>
-                            <object class="GtkLabel" id="url_label">
-                                <property name="max_width_chars">25</property>
-                                <property name="ellipsize">middle</property>
-                                <property name="hexpand">True</property>
-                                <property name="margin-left">5</property>
-                                <property name="visible">True</property>
-                            </object>
-                        </child>
-                        <child>
                             <object class="GtkButton" id="open_button">
                                 <property name="relief">none</property>
                                 <property name="visible">True</property>
@@ -31,6 +22,11 @@
                                         <property name="visible">True</property>
                                     </object>
                                 </child>
+                            </object>
+                        </child>
+                        <child>
+                            <object class="GtkScale" id="seek_scale">
+                                <property name="visible">True</property>
                             </object>
                         </child>
                     </object>
