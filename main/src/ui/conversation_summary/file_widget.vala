@@ -52,10 +52,10 @@ public class FileWidget : Box {
                 return;
             }
         } else if (show_audio()) {
-            add_audio_widget(file_transfer);
+            add_multimedia_widget(file_transfer, true);
             return;
         } else if (show_video()) {
-            add_video_widget(file_transfer);
+            add_multimedia_widget(file_transfer, false);
             return;
         }
 
@@ -167,31 +167,6 @@ public class FileWidget : Box {
         return playbin;
     }
 
-    private void add_video_widget(FileTransfer file_transfer) {
-        this.state = State.VIDEO;
-
-        Widget video_area;
-        Element playbin = element_for_file_transfer(file_transfer);
-        Element gtksink = ElementFactory.make ("gtksink", "sink");
-        gtksink.get ("widget", out video_area);
-        video_area.visible = true;
-        playbin["video-sink"] = gtksink;
-
-        /* We want to have controls for the video on hover */
-
-        Builder builder = new Builder.from_resource("/im/dino/Dino/conversation_summary/video_toolbar.ui");
-        Widget toolbar = builder.get_object("main") as Widget;
-
-        Button open_button = builder.get_object("pause_button") as Button;
-
-        open_button.clicked.connect(() => {
-            playbin.set_state (Gst.State.PLAYING);
-        });
-
-        EventBox grid = create_grid_revealer(video_area, toolbar);
-        this.add(grid);
-    }
-
     /* We want to use timestamps for seeking. Values are in nanoseconds */
 
     private string format_timestamp(double ns) {
@@ -223,11 +198,21 @@ public class FileWidget : Box {
         return state == Gst.State.PAUSED;
     }
 
-    private void add_audio_widget(FileTransfer file_transfer) {
-        this.state = State.AUDIO;
+    private void add_multimedia_widget(FileTransfer file_transfer, bool audio_only) {
+        this.state = audio_only ? State.AUDIO : State.VIDEO;
 
         Element playbin = element_for_file_transfer(file_transfer);
         playbin.set_state (Gst.State.PAUSED);
+
+        Widget video_area = null;
+
+        if (!audio_only) {
+            Element gtksink = ElementFactory.make("gtksink", "sink");
+
+            gtksink.get ("widget", out video_area);
+            video_area.visible = true;
+            playbin["video-sink"] = gtksink;
+        }
 
         Query query = new Query.position(Gst.Format.TIME);
 
@@ -294,7 +279,11 @@ public class FileWidget : Box {
         });
 
 
-        this.add(toolbar);
+        if (audio_only) {
+            this.add(toolbar);
+        } else {
+            this.add(create_grid_revealer(video_area, toolbar));
+        }
     }
 
     private Widget get_default_widget(FileTransfer file_transfer) {
