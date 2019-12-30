@@ -246,20 +246,12 @@ public class FileWidget : Box {
         seek_scale.set_range(0.0, 1.0);
         seek_scale.format_value.connect(format_timestamp);
 
-        bool should_reset = true;
-
         seek_scale.change_value.connect((_, seek_ns) => {
             playbin.seek_simple(Gst.Format.TIME, Gst.SeekFlags.FLUSH, (int64) seek_ns);
-            should_reset = false;
             return false;
         });
 
         pause_button.clicked.connect(() => {
-            if (should_reset) {
-                playbin.seek_simple(Gst.Format.TIME, Gst.SeekFlags.FLUSH, 0);
-                should_reset = false;
-            }
-
             set_pause(playbin, pause_image, !get_pause(playbin));
         });
 
@@ -268,7 +260,7 @@ public class FileWidget : Box {
         bus.message.connect((_, message) => {
             if (message.type == Gst.MessageType.EOS) {
                 set_pause(playbin, pause_image, true);
-                should_reset = true;
+                playbin.seek_simple(Gst.Format.TIME, Gst.SeekFlags.FLUSH, 0);
             } else if (message.type == Gst.MessageType.STATE_CHANGED) {
                 int64 duration;
                 playbin.query_duration(Gst.Format.TIME, out duration);
