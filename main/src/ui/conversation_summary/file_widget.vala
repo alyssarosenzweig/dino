@@ -202,7 +202,12 @@ public class FileWidget : Box {
         this.state = audio_only ? State.AUDIO : State.VIDEO;
 
         Element playbin = element_for_file_transfer(file_transfer);
-        playbin.set_state (Gst.State.PAUSED);
+
+        /* XXX: how to wait until we're added? FIXME TODO XXX */
+        Timeout.add(1000, () => {
+            playbin.set_state (Gst.State.PAUSED);
+            return false;
+        });
 
         Widget video_area = null;
 
