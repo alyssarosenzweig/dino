@@ -255,10 +255,12 @@ public class FileWidget : Box {
         });
 
         pause_button.clicked.connect(() => {
-            int64 seek = should_reset ? 0 : (int64) seek_scale.get_value();
-            playbin.seek_simple(Gst.Format.TIME, Gst.SeekFlags.FLUSH, seek);
+            if (should_reset) {
+                playbin.seek_simple(Gst.Format.TIME, Gst.SeekFlags.FLUSH, 0);
+                should_reset = false;
+            }
+
             set_pause(playbin, pause_image, !get_pause(playbin));
-            should_reset = false;
         });
 
         bool has_timeout = false;
