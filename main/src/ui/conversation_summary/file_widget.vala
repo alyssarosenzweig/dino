@@ -159,14 +159,6 @@ public class FileWidget : Box {
         return Gdk.pixbuf_get_from_surface(ctx.get_target(), 0, 0, pixbuf.width, pixbuf.height);
     }
 
-    /* Construct a gstreamer element for a downloaded file */
-
-    private Element element_for_file_transfer(FileTransfer file_transfer) {
-        Element playbin = ElementFactory.make ("playbin", "bin");
-        playbin["uri"] = "file://" + file_transfer.get_file().get_path();
-        return playbin;
-    }
-
     /* We want to use timestamps for seeking. Values are in nanoseconds */
 
     private string format_timestamp(double ns) {
@@ -201,7 +193,8 @@ public class FileWidget : Box {
     private void add_multimedia_widget(FileTransfer file_transfer, bool audio_only) {
         this.state = audio_only ? State.AUDIO : State.VIDEO;
 
-        Element playbin = element_for_file_transfer(file_transfer);
+        Element playbin = ElementFactory.make ("playbin", "bin");
+        playbin["uri"] = file_transfer.get_file().get_uri();
 
         /* XXX: how to wait until we're added? FIXME TODO XXX */
         Timeout.add(1000, () => {
@@ -216,6 +209,7 @@ public class FileWidget : Box {
 
             gtksink.get ("widget", out video_area);
             video_area.visible = true;
+            video_area.vexpand = true;
             playbin["video-sink"] = gtksink;
         }
 
@@ -282,7 +276,6 @@ public class FileWidget : Box {
                 }
             }
         });
-
 
         if (audio_only) {
             this.add(toolbar);
