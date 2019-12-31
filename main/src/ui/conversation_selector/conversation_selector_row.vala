@@ -125,19 +125,37 @@ public class ConversationSelectorRow : ListBoxRow {
 
     protected void update_message_label() {
         if (last_content_item != null) {
+            bool italics = false;
+
             switch (last_content_item.type_) {
                 case MessageItem.TYPE:
                     MessageItem message_item = last_content_item as MessageItem;
                     Message last_message = message_item.message;
 
-                    if (conversation.type_ == Conversation.Type.GROUPCHAT) {
-                        nick_label.label = Util.get_participant_display_name(stream_interactor, conversation, last_message.from, true) + ": ";
-                    } else {
-                        nick_label.label = last_message.direction == Message.DIRECTION_SENT ? _("Me") + ": " : "";
+                    string body = last_message.body;
+                    bool suffix_nick = true;
+
+                    /* Italicize actions */
+                    if (body.has_prefix("/me")) {
+                        body = body.slice("/me".length, body.length);
+                        suffix_nick = false;
                     }
 
-                    message_label.attributes.filter((attr) => attr.equal(attr_style_new(Pango.Style.ITALIC)));
-                    message_label.label = Util.summarize_whitespaces_to_space(last_message.body);
+                    if (conversation.type_ == Conversation.Type.GROUPCHAT) {
+                        nick_label.label = Util.get_participant_display_name(stream_interactor, conversation, last_message.from, true);
+                    } else if (last_message.direction == Message.DIRECTION_SENT) {
+                        nick_label.label = _("Me");
+                    } else {
+                        nick_label.label = "";
+                        suffix_nick = false;
+                    }
+
+                    /* TODO: i18n? Is this valid for RTL languages? */
+
+                    if (suffix_nick)
+                        nick_label.label += ": ";
+
+                    message_label.label = Util.summarize_whitespaces_to_space(body);
                     break;
                 case FileItem.TYPE:
                     FileItem file_item = last_content_item as FileItem;
@@ -151,7 +169,8 @@ public class ConversationSelectorRow : ListBoxRow {
                     }
 
                     bool file_is_image = transfer.mime_type != null && transfer.mime_type.has_prefix("image");
-                    message_label.attributes.insert(attr_style_new(Pango.Style.ITALIC));
+                    italics = true;
+
                     if (transfer.direction == Message.DIRECTION_SENT) {
                         message_label.label = (file_is_image ? _("Image sent") : _("File sent") );
                     } else {
@@ -159,6 +178,13 @@ public class ConversationSelectorRow : ListBoxRow {
                     }
                     break;
             }
+
+            if (italics) {
+                message_label.attributes.insert(attr_style_new(Pango.Style.ITALIC));
+            } else {
+                message_label.attributes.filter((attr) => attr.equal(attr_style_new(Pango.Style.ITALIC)));
+            }
+
             nick_label.visible = true;
             message_label.visible = true;
         }
