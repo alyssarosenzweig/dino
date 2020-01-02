@@ -715,11 +715,11 @@ msgstr ""
 
 #: main/data/im.dino.Dino.appdata.xml.in:11
 msgid ""
-"It supports end-to-end encryption with OMEMO and OpenPGP and allows "
+"It supports end-to-end encryption with OMEMO and allows "
 "configuring privacy-related features such as read receipts and typing "
 "notifications."
 msgstr ""
-"Implementa xifratge punt a punt amb OMEMO i OpenPGP, i permet configurar "
+"Implementa xifratge punt a punt amb OMEMO, i permet configurar "
 "funcionalitats relacionades amb la privacitat com per exemple rebuts de "
 "lectura i notificacions d'escriptura."
 
